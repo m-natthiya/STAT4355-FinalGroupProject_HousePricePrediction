@@ -1,0 +1,70 @@
+---
+title: "Group15 : PartI"
+author: "Natthiya Sae Ngow"
+output:
+html_document:
+df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(reshape2)
+library(dplyr)
+library(tidyr) 
+
+#(1) Load data
+house_data <- read.csv("~/Documents/UTD/UTD Spring 2025/STAT_4355 Applied Linear Models/Final Project/Final_Project/House Price Prediction Dataset.csv")
+
+#Check structure and summary
+head(house_data)
+str(house_data)
+summary(house_data)
+
+
+#Check missing values
+colSums(is.na(house_data))
+
+# Sort by Price descending and select top 10
+top10 <- house_data[order(-house_data$Price), ][1:10, ]
+summary(top10)
+
+# Print nicely formatted
+print(top10, row.names = FALSE)
+
+
+# # # # # # # # # # # # # # #
+
+#(2) Create correlation matrix and convert to long format
+cor_matrix <- round(cor(house_data[, numeric_cols]), 2)
+melted_cor <- melt(cor_matrix)
+
+# Plot using geom_tile
+ggplot(melted_cor, aes(Var1, Var2, fill = value)) +
+  geom_tile(color = "red") +
+  geom_text(aes(label = value), color = "black", size = 3.5) +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, limits = c(-1,1)) +
+  theme_minimal() +
+  labs(title = "Correlation Matrix (Tile Plot)", x = "", y = "") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# # # # # # # # # # # # # # #
+
+#(3)Create Boxplots for Categorical Variables vs Price
+#Data transformation by reshapes the data from wide to long format 3 categorical values.
+#Create 2 new columns (Variable and Group)
+df_long <- house_data %>%
+  pivot_longer(cols = c(Location, Condition, Garage), names_to = "Variable", values_to = "Group") %>%
+  mutate(Combined = paste(Variable, Group, sep = ": ")) #combines the variables names into a single level 
+
+#Boxplot Categorical Variables vs Price
+ggplot(df_long, aes(x = Combined, y = Price)) +
+  geom_boxplot(fill = "lightblue") +
+  theme_minimal() +
+  labs(title = "Boxplot of Price by Category Variables", x = "Category Variables", y = "Price") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
